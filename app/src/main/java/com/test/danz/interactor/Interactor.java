@@ -11,7 +11,7 @@ import com.test.danz.repository.IRepository;
 import com.test.danz.repository.Repository;
 import java.util.List;
 
-public class Interactor {
+public class Interactor implements IInteractor{
     private IRepository repository;
 
     private Presenter presenter;
@@ -23,6 +23,7 @@ public class Interactor {
     }
 
 
+    @Override
     public void setDataForRecycler() {
         Log.d(LOG_TAG, "INTERACTOR Attack: " + "\n");
         repository.getIniRetrofit(new Repository.AfterRetroCallback() {
@@ -49,6 +50,7 @@ public class Interactor {
     }
 
 
+    @Override
     public void setDataToDB(List<AttributeCurrency> listCur) {
         for (AttributeCurrency attCur : listCur){
 
@@ -61,6 +63,7 @@ public class Interactor {
         }
     }
 
+    @Override
     public void cvAdd(AttributeCurrency attCur ) {
         ContentValues cv = new ContentValues();
         cv.put(DatabaseContract.KEY_ID,attCur.getId());
@@ -74,6 +77,7 @@ public class Interactor {
 
     }
 
+    @Override
     public void cvUpdate(AttributeCurrency attCur, String charCode) {
 
         ContentValues cv = new ContentValues();

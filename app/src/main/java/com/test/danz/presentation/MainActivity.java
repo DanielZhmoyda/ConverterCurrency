@@ -10,17 +10,16 @@ import android.util.Log;
 import android.widget.EditText;
 
 import com.test.danz.adapter.RecyclerAdapter;
-import com.test.danz.presentation.R;
 import com.test.danz.model.AttributeCurrency;
 
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements UserView {
 
     private final static String EDIT_LOG = "editLog";
     private RecyclerView userList;
     private EditText eT;
-    private Presenter presenter;
+    private IPresenter presenter;
     private RecyclerAdapter recyclerAdapter = new RecyclerAdapter();
     private final static String LOG_TAG = "converterLogs";
 
@@ -48,10 +47,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
     public void setData(List<AttributeCurrency> attCurList) {
         recyclerAdapter.setDataRV(attCurList);
     }
-
+    @Override
     public void initEditT() {
 
         eT.addTextChangedListener(new TextWatcher() {
