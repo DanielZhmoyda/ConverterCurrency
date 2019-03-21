@@ -17,7 +17,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        Log.d(LOG, "call onCreate====" + "\n");
+        Log.d(LOG, "call onCreate====");
         db.execSQL(DatabaseContract.CREATE_TABLE);
 
     }

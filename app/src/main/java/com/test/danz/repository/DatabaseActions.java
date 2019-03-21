@@ -4,11 +4,9 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.util.Log;
-
 import com.test.danz.database.DBHelper;
 import com.test.danz.database.DatabaseContract;
 import com.test.danz.model.AttributeCurrency;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,9 +34,9 @@ public class DatabaseActions {
     }
 
 
-    public void loadForRecycler(LoadUserCallback callback) {
-        LoadForRecyclerTask lfrt = new LoadForRecyclerTask(callback);
-        lfrt.execute();
+    public void loadCurrencies(LoadUserCallback callback) {
+        LoadCurrenciesTask loadCurrenciesTask = new LoadCurrenciesTask(callback);
+        loadCurrenciesTask.execute();
     }
 
     public void updateCurrency(ContentValues cv, String charCode){
@@ -63,12 +61,10 @@ public class DatabaseActions {
     }
 
 
-    class LoadForRecyclerTask extends AsyncTask<Void,Void,List<AttributeCurrency>> {
-
-        private List<AttributeCurrency> resultAttCur = new ArrayList<>();
+    class LoadCurrenciesTask extends AsyncTask<Void,Void,List<AttributeCurrency>> {
         private final LoadUserCallback callback;
 
-        LoadForRecyclerTask(LoadUserCallback callback) {
+        LoadCurrenciesTask(LoadUserCallback callback) {
             this.callback = callback;
         }
 

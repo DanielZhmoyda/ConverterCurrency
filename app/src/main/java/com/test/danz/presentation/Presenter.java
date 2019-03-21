@@ -2,54 +2,60 @@ package com.test.danz.presentation;
 
 import com.test.danz.interactor.Interactor;
 import com.test.danz.model.AttributeCurrency;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Presenter {
+import javax.inject.Inject;
 
-    private MainActivity view;
+public class Presenter implements IPresenter{
+
+    private UserView view;
     private Interactor interactor;
     private List<AttributeCurrency> listAttCur = new ArrayList<>();
 
-    public Presenter(MainActivity mainActivity) {
-        view = mainActivity;
-        interactor = new Interactor(this);
+    @Inject
+    public Presenter(Interactor interactor) {
+        this.interactor = interactor;
     }
 
-    public void setFinalResponse(List<AttributeCurrency> recyclerList, List<AttributeCurrency> requestList) {
-        recyclerList.addAll(requestList);
-    }
-    public MainActivity getView() {
-        return view;
-    }
-    public void setResponseList(List<AttributeCurrency> listCur) {
-        setFinalResponse(listAttCur, listCur);
-        showRecycler();
+    @Override
+    public void setResponseToMainList(List<AttributeCurrency> mainList, List<AttributeCurrency> requestList) {
+        mainList.addAll(requestList);
     }
 
-    public void attachView(MainActivity mainActivity) {
+    @Override
+    public void attachView(UserView mainActivity) {
         view = mainActivity;
     }
 
+    @Override
     public void detachView() {
         view = null;
     }
 
-
-    public void initializationRecycler() {
-        interactor.setDataForRecycler();
+    @Override
+    public void initializationRecyclerView() {
+        interactor.setDataForRecycler(new Interactor.CallbackToPresenter() {
+            @Override
+            public void sendDataToPresenter(List<AttributeCurrency> listCur) {
+                setResponseToMainList(listAttCur, listCur);
+                showRecycleView();
+            }
+        });
     }
 
-    public void showRecycler() {
-        view.setData(listAttCur);
-    }
-    public void initializationRecyclerAfterEdit(double saveEdit) {
-        view.setData(editRecyclerView(saveEdit));
+    @Override
+    public void showRecycleView() {
+        view.setDataToRecyclerView(listAttCur);
     }
 
+    @Override
+    public void changeRecyclerViewAfterEdit(double saveEdit) {
+        view.setDataToRecyclerView(editRecyclerView(saveEdit));
+    }
 
+    @Override
     public List<AttributeCurrency> editRecyclerView (Double saveEdit) {
         List<AttributeCurrency> localList = new ArrayList<>();
         for(AttributeCurrency attCur: listAttCur) {

@@ -8,19 +8,20 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.EditText;
-
 import com.test.danz.adapter.RecyclerAdapter;
-import com.test.danz.presentation.R;
+import com.test.danz.app.App;
 import com.test.danz.model.AttributeCurrency;
 
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+import javax.inject.Inject;
+
+public class MainActivity extends AppCompatActivity implements UserView {
 
     private final static String EDIT_LOG = "editLog";
     private RecyclerView userList;
-    private EditText eT;
-    private Presenter presenter;
+    private EditText editText;
+    @Inject IPresenter presenter;
     private RecyclerAdapter recyclerAdapter = new RecyclerAdapter();
     private final static String LOG_TAG = "converterLogs";
 
@@ -28,14 +29,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        App.getAppComponent().inject(this);
 
         Log.d(LOG_TAG, "hello");
 
-        eT = findViewById(R.id.eT);
-        presenter = new Presenter(this);
-        presenter.initializationRecycler();
+        editText = findViewById(R.id.eT);
+        presenter.initializationRecyclerView();
 
-        initEditT();
+        initEditText();
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -48,13 +49,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void setData(List<AttributeCurrency> attCurList) {
+    @Override
+    public void setDataToRecyclerView(List<AttributeCurrency> attCurList) {
         recyclerAdapter.setDataRV(attCurList);
     }
 
-    public void initEditT() {
+    @Override
+    public void initEditText() {
 
-        eT.addTextChangedListener(new TextWatcher() {
+        editText.addTextChangedListener(new TextWatcher() {
 
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -71,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
 
                 double saveEdit = Double.parseDouble(editable.toString());
                 Log.d(EDIT_LOG, "text changed   " + saveEdit);
-                presenter.initializationRecyclerAfterEdit(saveEdit);
+                presenter.changeRecyclerViewAfterEdit(saveEdit);
 
             }
         });
