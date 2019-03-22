@@ -10,5 +10,4 @@ public interface IPresenter {
     void initializationRecyclerView();
     void showRecycleView();
     void changeRecyclerViewAfterEdit(double saveEdit);
-    List<AttributeCurrency> editRecyclerView (Double saveEdit);
 }

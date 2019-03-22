@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements UserView {
         Log.d(LOG_TAG, "hello");
 
         editText = findViewById(R.id.eT);
+        presenter.attachView(this);
         presenter.initializationRecyclerView();
 
         initEditText();

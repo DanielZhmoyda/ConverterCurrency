@@ -55,8 +55,8 @@ public class Presenter implements IPresenter{
         view.setDataToRecyclerView(editRecyclerView(saveEdit));
     }
 
-    @Override
-    public List<AttributeCurrency> editRecyclerView (Double saveEdit) {
+
+    private List<AttributeCurrency> editRecyclerView (Double saveEdit) {
         List<AttributeCurrency> localList = new ArrayList<>();
         for(AttributeCurrency attCur: listAttCur) {
             AttributeCurrency attributeCurrency = new AttributeCurrency();

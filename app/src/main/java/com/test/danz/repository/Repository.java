@@ -88,12 +88,12 @@ public class Repository implements IRepository{
 
     }
 
-    @Override
-    public DBHelper getDBHelper() {
+
+    private DBHelper getDBHelper() {
         return new DBHelper(context);
     }
-    @Override
-    public DatabaseActions getDatabaseActions() {
+
+    private DatabaseActions getDatabaseActions() {
         return new DatabaseActions(getDBHelper());
     }
 

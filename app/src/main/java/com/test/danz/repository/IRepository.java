@@ -6,8 +6,8 @@ import java.util.List;
 
 public interface IRepository {
     void getIniRetrofit(Repository.AfterRetroCallback callback);
-    DBHelper getDBHelper();
-    DatabaseActions getDatabaseActions();
+   // DBHelper getDBHelper();
+  //  DatabaseActions getDatabaseActions();
     void setDataToDB(List<AttributeCurrency> listCur);
     void cvAdd(AttributeCurrency attCur);
     void cvUpdate(AttributeCurrency attCur, String charCode);
