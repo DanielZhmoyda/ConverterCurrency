@@ -23,7 +23,6 @@ public class MainActivity extends AppCompatActivity implements UserView {
     private EditText editText;
     @Inject IPresenter presenter;
     private RecyclerAdapter recyclerAdapter = new RecyclerAdapter();
-    private final static String LOG_TAG = "converterLogs";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,10 +30,9 @@ public class MainActivity extends AppCompatActivity implements UserView {
         setContentView(R.layout.activity_main);
         App.getAppComponent().inject(this);
 
-        Log.d(LOG_TAG, "hello");
-
         editText = findViewById(R.id.eT);
         presenter.attachView(this);
+        if (savedInstanceState == null)
         presenter.initializationRecyclerView();
 
         initEditText();
@@ -72,8 +70,13 @@ public class MainActivity extends AppCompatActivity implements UserView {
 
             @Override
             public void afterTextChanged(Editable editable) {
+                double saveEdit;
+                try {
+                    saveEdit = Double.parseDouble(editable.toString());
+                } catch (NumberFormatException e) {
+                    saveEdit = 0;
+                }
 
-                double saveEdit = Double.parseDouble(editable.toString());
                 Log.d(EDIT_LOG, "text changed   " + saveEdit);
                 presenter.changeRecyclerViewAfterEdit(saveEdit);
 

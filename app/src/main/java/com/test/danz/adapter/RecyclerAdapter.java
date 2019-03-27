@@ -15,9 +15,9 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.RecHol
     private List<AttributeCurrency> attCurList = new ArrayList<>();
 
 
-    public void setDataRV(List<AttributeCurrency> listFromDB) {
+    public void setDataRV(List<AttributeCurrency> listWithData) {
         attCurList.clear();
-        attCurList.addAll(listFromDB);
+        attCurList.addAll(listWithData);
         notifyDataSetChanged();
     }
     @NonNull

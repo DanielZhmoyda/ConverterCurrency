@@ -4,11 +4,12 @@ import com.test.danz.di.modules.AppModule;
 import com.test.danz.di.modules.InteractorModule;
 import com.test.danz.di.modules.PresenterModule;
 import com.test.danz.di.modules.RepositoryModule;
+import com.test.danz.di.modules.UtilsModule;
 import com.test.danz.presentation.MainActivity;
 import javax.inject.Singleton;
 import dagger.Component;
 
-@Component(modules = {AppModule.class, RepositoryModule.class, InteractorModule.class, PresenterModule.class    })
+@Component(modules = {AppModule.class, RepositoryModule.class, InteractorModule.class, PresenterModule.class, UtilsModule.class })
 @Singleton
 public interface AppComponent {
     void inject(MainActivity mainActivity);

@@ -1,8 +1,6 @@
 package com.test.danz.repository;
 
 import android.content.ContentValues;
-import android.content.Context;
-import android.util.Log;
 import com.test.danz.database.DBHelper;
 import com.test.danz.database.DatabaseContract;
 import com.test.danz.model.AttributeCurrency;
@@ -11,29 +9,31 @@ import java.util.List;
 import javax.inject.Inject;
 
 public class Repository implements IRepository{
-    private Context context;
-    private final static String LOG_TAG = "converterLogs";
+    private IniRetrofit iniRetrofit;
+    private DatabaseActions databaseActions;
+    private DBHelper dbHelper;
 
     public interface AfterRetroCallback {
          void sendDataToInteractor(List<AttributeCurrency> listCur);
     }
 
     @Inject
-    public Repository(Context context) {
-        this.context = context;
-        Log.d(LOG_TAG, "repository created + " + context + "\n");
+    public Repository(DBHelper dbHelper, IniRetrofit iniRetrofit, DatabaseActions databaseActions) {
+        this.dbHelper = dbHelper;
+        this.iniRetrofit = iniRetrofit;
+        this.databaseActions = databaseActions;
     }
 
     @Override
     public void getIniRetrofit(final AfterRetroCallback callback) {
-        new IniRetrofit().iNetService(new IniRetrofit.ResponseCallback() {
+        iniRetrofit.iNetService(new IniRetrofit.ResponseCallback() {
             @Override
             public void getResponseCallback(List<AttributeCurrency> attList, boolean checkInternet) {
                 setDataToDB(attList);
                 if (checkInternet) {
                         callback.sendDataToInteractor(attList);
                 } else {
-                    getDatabaseActions().loadCurrencies(new DatabaseActions.LoadUserCallback() {
+                    databaseActions.loadCurrencies(new DatabaseActions.LoadUserCallback() {
                         @Override
                         public void onLoad(List<AttributeCurrency> attCurList) {
                             callback.sendDataToInteractor(attCurList);
@@ -41,7 +41,7 @@ public class Repository implements IRepository{
                     });
                  //   Toast.makeText(presenter.getView() , "Произошла ошибка при загрузке данных с сервера. Проверьте интернет соединение. Возможно загружены старые данные" , Toast.LENGTH_LONG).show();
                 }
-                getDBHelper().close();
+                dbHelper.close();
             }
         });
 
@@ -51,7 +51,7 @@ public class Repository implements IRepository{
     public void setDataToDB(List<AttributeCurrency> listCur) {
         for (AttributeCurrency attCur : listCur){
 
-            if (getDatabaseActions().getCursor().getCount()!= 0) {
+            if (databaseActions.getCursor().getCount()!= 0) {
                 cvUpdate(attCur,attCur.getCharCode());
             }
             else
@@ -70,7 +70,7 @@ public class Repository implements IRepository{
         cv.put(DatabaseContract.KEY_NAME,attCur.getName());
         cv.put(DatabaseContract.KEY_VALUE,attCur.getValue());
 
-        getDatabaseActions().addCurrency(cv);
+        databaseActions.addCurrency(cv);
 
     }
 
@@ -84,17 +84,7 @@ public class Repository implements IRepository{
         cv.put(DatabaseContract.KEY_NAME,attCur.getName());
         cv.put(DatabaseContract.KEY_VALUE,attCur.getValue());
 
-        getDatabaseActions().updateCurrency(cv, charCode);
+        databaseActions.updateCurrency(cv, charCode);
 
     }
-
-
-    private DBHelper getDBHelper() {
-        return new DBHelper(context);
-    }
-
-    private DatabaseActions getDatabaseActions() {
-        return new DatabaseActions(getDBHelper());
-    }
-
 }

@@ -2,7 +2,8 @@ package com.test.danz.presentation;
 
 import com.test.danz.interactor.Interactor;
 import com.test.danz.model.AttributeCurrency;
-import java.math.BigDecimal;
+
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +11,7 @@ import javax.inject.Inject;
 
 public class Presenter implements IPresenter{
 
-    private UserView view;
+    private WeakReference<UserView> viewWeakRef = null;
     private Interactor interactor;
     private List<AttributeCurrency> listAttCur = new ArrayList<>();
 
@@ -25,18 +26,19 @@ public class Presenter implements IPresenter{
     }
 
     @Override
-    public void attachView(UserView mainActivity) {
-        view = mainActivity;
+    public void attachView(UserView view) {
+        viewWeakRef = new WeakReference<>(view);
     }
 
     @Override
     public void detachView() {
-        view = null;
+        viewWeakRef = null;
     }
 
     @Override
     public void initializationRecyclerView() {
-        interactor.setDataForRecycler(new Interactor.CallbackToPresenter() {
+        interactor.setDataToIntermediateList();
+        interactor.sendDataToPresenter(new Interactor.CallbackToPresenter() {
             @Override
             public void sendDataToPresenter(List<AttributeCurrency> listCur) {
                 setResponseToMainList(listAttCur, listCur);
@@ -47,30 +49,12 @@ public class Presenter implements IPresenter{
 
     @Override
     public void showRecycleView() {
-        view.setDataToRecyclerView(listAttCur);
+        viewWeakRef.get().setDataToRecyclerView(listAttCur);
     }
 
     @Override
     public void changeRecyclerViewAfterEdit(double saveEdit) {
-        view.setDataToRecyclerView(editRecyclerView(saveEdit));
+        viewWeakRef.get().setDataToRecyclerView(interactor.editRecyclerView(saveEdit));
     }
 
-
-    private List<AttributeCurrency> editRecyclerView (Double saveEdit) {
-        List<AttributeCurrency> localList = new ArrayList<>();
-        for(AttributeCurrency attCur: listAttCur) {
-            AttributeCurrency attributeCurrency = new AttributeCurrency();
-            attributeCurrency.setName(attCur.getName());
-            attributeCurrency.setValue(attCur.getValue());
-            attributeCurrency.setCharCode(attCur.getCharCode());
-            attributeCurrency.setNominal(attCur.getNominal());
-            localList.add(attributeCurrency);
-        }
-
-        for(AttributeCurrency attCur: localList) {
-            double value =  saveEdit * attCur.getNominal() / attCur.getValue();
-            attCur.setValue(Double.valueOf(String.valueOf(new BigDecimal(value).setScale(3, BigDecimal.ROUND_HALF_UP))));
-        }
-        return localList;
-    }
 }

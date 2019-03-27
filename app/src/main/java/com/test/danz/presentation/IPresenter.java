@@ -1,6 +1,8 @@
 package com.test.danz.presentation;
 
 import com.test.danz.model.AttributeCurrency;
+
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 public interface IPresenter {

@@ -90,7 +90,7 @@ public class DatabaseActions {
         }
         @Override
         protected void onPostExecute(List<AttributeCurrency> attCurForRV) {
-
+            super.onPostExecute(attCurForRV);
             if (callback != null) {
                 callback.onLoad(attCurForRV);
             }
