@@ -1,8 +1,9 @@
 package com.test.danz.presentation;
 
+import android.util.Log;
+
 import com.test.danz.interactor.Interactor;
 import com.test.danz.model.AttributeCurrency;
-
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,7 @@ public class Presenter implements IPresenter{
     private WeakReference<UserView> viewWeakRef = null;
     private Interactor interactor;
     private List<AttributeCurrency> listAttCur = new ArrayList<>();
+    private static final String LOG_TAG = "list";
 
     @Inject
     public Presenter(Interactor interactor) {
@@ -21,13 +23,9 @@ public class Presenter implements IPresenter{
     }
 
     @Override
-    public void setResponseToMainList(List<AttributeCurrency> mainList, List<AttributeCurrency> requestList) {
-        mainList.addAll(requestList);
-    }
-
-    @Override
     public void attachView(UserView view) {
         viewWeakRef = new WeakReference<>(view);
+        initializationRecyclerView();
     }
 
     @Override
@@ -37,11 +35,11 @@ public class Presenter implements IPresenter{
 
     @Override
     public void initializationRecyclerView() {
-        interactor.setDataToIntermediateList();
         interactor.sendDataToPresenter(new Interactor.CallbackToPresenter() {
             @Override
             public void sendDataToPresenter(List<AttributeCurrency> listCur) {
-                setResponseToMainList(listAttCur, listCur);
+                listAttCur.clear();
+                listAttCur.addAll(listCur);
                 showRecycleView();
             }
         });
@@ -49,12 +47,17 @@ public class Presenter implements IPresenter{
 
     @Override
     public void showRecycleView() {
-        viewWeakRef.get().setDataToRecyclerView(listAttCur);
+        UserView userView = viewWeakRef.get();
+        if (userView != null)
+        userView.setDataToRecyclerView(listAttCur);
+        Log.d(LOG_TAG, "list size = " + listAttCur.size());
     }
 
     @Override
     public void changeRecyclerViewAfterEdit(double saveEdit) {
-        viewWeakRef.get().setDataToRecyclerView(interactor.editRecyclerView(saveEdit));
+        UserView userView = viewWeakRef.get();
+        if (userView != null)
+        userView.setDataToRecyclerView(interactor.editRecyclerView(saveEdit));
     }
 
 }

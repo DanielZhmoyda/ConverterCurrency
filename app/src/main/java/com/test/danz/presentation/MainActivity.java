@@ -31,11 +31,6 @@ public class MainActivity extends AppCompatActivity implements UserView {
         App.getAppComponent().inject(this);
 
         editText = findViewById(R.id.eT);
-        presenter.attachView(this);
-        if (savedInstanceState == null)
-        presenter.initializationRecyclerView();
-
-        initEditText();
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -87,10 +82,16 @@ public class MainActivity extends AppCompatActivity implements UserView {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        presenter.detachView();
+    protected void onResume() {
+        super.onResume();
+        presenter.attachView(this);
+        initEditText();
+    }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        presenter.detachView();
     }
 
 }

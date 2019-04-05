@@ -1,10 +1,12 @@
 package com.test.danz.repository;
 
 import android.content.ContentValues;
+import android.util.Log;
 import com.test.danz.database.DBHelper;
 import com.test.danz.database.DatabaseContract;
 import com.test.danz.model.AttributeCurrency;
 import com.test.danz.repository.networking.IniRetrofit;
+import java.lang.ref.WeakReference;
 import java.util.List;
 import javax.inject.Inject;
 
@@ -12,6 +14,7 @@ public class Repository implements IRepository{
     private IniRetrofit iniRetrofit;
     private DatabaseActions databaseActions;
     private DBHelper dbHelper;
+    private final static String LOG_TAGG = "list";
 
     public interface AfterRetroCallback {
          void sendDataToInteractor(List<AttributeCurrency> listCur);
@@ -31,6 +34,7 @@ public class Repository implements IRepository{
             public void getResponseCallback(List<AttributeCurrency> attList, boolean checkInternet) {
                 setDataToDB(attList);
                 if (checkInternet) {
+                    Log.d(LOG_TAGG, "repositoryList size = " + attList.size());
                         callback.sendDataToInteractor(attList);
                 } else {
                     databaseActions.loadCurrencies(new DatabaseActions.LoadUserCallback() {
@@ -39,7 +43,7 @@ public class Repository implements IRepository{
                             callback.sendDataToInteractor(attCurList);
                         }
                     });
-                 //   Toast.makeText(presenter.getView() , "Произошла ошибка при загрузке данных с сервера. Проверьте интернет соединение. Возможно загружены старые данные" , Toast.LENGTH_LONG).show();
+                 //   Toast.makeText( , "Произошла ошибка при загрузке данных с сервера. Проверьте интернет соединение. Возможно загружены старые данные" , Toast.LENGTH_LONG).show();
                 }
                 dbHelper.close();
             }
@@ -70,7 +74,9 @@ public class Repository implements IRepository{
         cv.put(DatabaseContract.KEY_NAME,attCur.getName());
         cv.put(DatabaseContract.KEY_VALUE,attCur.getValue());
 
-        databaseActions.addCurrency(cv);
+        WeakReference<ContentValues> cvWeakRef = new WeakReference<>(cv);
+
+        databaseActions.addCurrency(cvWeakRef);
 
     }
 
@@ -84,7 +90,10 @@ public class Repository implements IRepository{
         cv.put(DatabaseContract.KEY_NAME,attCur.getName());
         cv.put(DatabaseContract.KEY_VALUE,attCur.getValue());
 
-        databaseActions.updateCurrency(cv, charCode);
+        WeakReference<ContentValues> cvWeakRef = new WeakReference<>(cv);
+        WeakReference<String> charCodeWeakRef = new WeakReference<>(charCode);
+
+        databaseActions.updateCurrency(cvWeakRef, charCodeWeakRef);
 
     }
 }

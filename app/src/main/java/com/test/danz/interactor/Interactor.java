@@ -1,5 +1,7 @@
 package com.test.danz.interactor;
 
+import android.util.Log;
+
 import com.test.danz.model.AttributeCurrency;
 import com.test.danz.repository.IRepository;
 import com.test.danz.repository.Repository;
@@ -13,6 +15,7 @@ public class Interactor {
 
     private IRepository repository;
     private List<AttributeCurrency> intermediateListAttCur = new ArrayList<>();
+    private final static String LOG_TAGG = "list";
 
     public interface CallbackToPresenter{
         void sendDataToPresenter(List<AttributeCurrency> listAttCur);
@@ -23,21 +26,21 @@ public class Interactor {
         this.repository = repository;
     }
 
-    private void setResponseToIntermediateList(List<AttributeCurrency> intermediateList, List<AttributeCurrency> requestList) {
-        intermediateList.addAll(requestList);
-    }
-
-    public void setDataToIntermediateList() {
+    private void setDataToIntermediateList() {
         repository.getIniRetrofit(new Repository.AfterRetroCallback() {
             @Override
             public void sendDataToInteractor(List<AttributeCurrency> listCur) {
-                setResponseToIntermediateList(intermediateListAttCur, listCur);
+                Log.d(LOG_TAGG, "interactorList1 size = " + listCur.size());
+                intermediateListAttCur.clear();
+                intermediateListAttCur.addAll(listCur);
             }
         });
     }
 
     public void sendDataToPresenter(final CallbackToPresenter callback) {
 
+        setDataToIntermediateList();
+        Log.d(LOG_TAGG, "interactorList2 size = " + intermediateListAttCur.size() + "\n");
         callback.sendDataToPresenter(intermediateListAttCur);
     }
 

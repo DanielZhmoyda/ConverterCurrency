@@ -14,7 +14,6 @@ import java.util.List;
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.RecHolder> {
     private List<AttributeCurrency> attCurList = new ArrayList<>();
 
-
     public void setDataRV(List<AttributeCurrency> listWithData) {
         attCurList.clear();
         attCurList.addAll(listWithData);

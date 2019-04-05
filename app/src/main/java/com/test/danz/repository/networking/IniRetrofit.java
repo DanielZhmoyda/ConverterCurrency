@@ -5,30 +5,24 @@ import com.test.danz.model.AttributeCurrency;
 import com.test.danz.model.CurrencyModel;
 import java.util.ArrayList;
 import java.util.List;
-import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
+import javax.inject.Inject;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-
 
 public class IniRetrofit {
-    private final static String LOG_TAG = "converterLogs";
+    private Retrofit.Builder builder;
+
+    @Inject
+    public IniRetrofit(Retrofit.Builder builder) {
+        this.builder = builder;
+    }
+    private final static String LOG_TAGG = "list";
+    private final static String LOG_TAG = "converter";
 
         public void iNetService(final ResponseCallback callback) {
-
-            HttpLoggingInterceptor logger = new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY);
-            OkHttpClient client = new OkHttpClient.Builder().addInterceptor(logger).build();
-            Retrofit.Builder builder = new Retrofit
-                    .Builder()
-                    .client(client)
-                    .baseUrl("https://www.cbr-xml-daily.ru/")
-                    .addConverterFactory(GsonConverterFactory.create());
             Retrofit retrofitBuild = builder.build();
-
-
             Log.d(LOG_TAG, "get feed complete");
             Call<CurrencyModel> call = retrofitBuild.create(INetCurrency.class).getCurrencyModel();
             call.enqueue(new Callback<CurrencyModel>()
@@ -38,6 +32,7 @@ public class IniRetrofit {
                     if (response.isSuccessful()) {
                         Log.d(LOG_TAG, "response is successful ");
 
+                        Log.d(LOG_TAGG, "iniRetroList size = " + parseDataFromServer(response.body()).size());
                         callback.getResponseCallback(parseDataFromServer(response.body()), true);
                     }
                     else {

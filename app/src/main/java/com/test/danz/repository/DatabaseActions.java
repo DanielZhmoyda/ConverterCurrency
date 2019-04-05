@@ -7,6 +7,8 @@ import android.util.Log;
 import com.test.danz.database.DBHelper;
 import com.test.danz.database.DatabaseContract;
 import com.test.danz.model.AttributeCurrency;
+
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,32 +30,39 @@ public class DatabaseActions {
     }
 
 
-    public void addCurrency(ContentValues cv){
-        AddCurrencyTask addTask = new AddCurrencyTask();
-        addTask.execute(cv);
+    public void addCurrency(WeakReference<ContentValues> cvWeakRef){
+        AddCurrencyTask addTask = new AddCurrencyTask(new WeakReference<>(dbHelper));
+        addTask.execute(cvWeakRef);
     }
 
 
     public void loadCurrencies(LoadUserCallback callback) {
-        LoadCurrenciesTask loadCurrenciesTask = new LoadCurrenciesTask(callback);
+        LoadCurrenciesTask loadCurrenciesTask = new LoadCurrenciesTask(callback, new WeakReference<>(dbHelper));
         loadCurrenciesTask.execute();
     }
 
-    public void updateCurrency(ContentValues cv, String charCode){
-        UpdateCurrencyTask updateTask = new UpdateCurrencyTask(charCode);
-        updateTask.execute(cv);
+    public void updateCurrency(WeakReference<ContentValues> cvWeakRef,WeakReference<String> charCodeWeakRef){
+        UpdateCurrencyTask updateTask = new UpdateCurrencyTask(charCodeWeakRef, new WeakReference<>(dbHelper));
+        updateTask.execute(cvWeakRef);
     }
 
 
 
-    class AddCurrencyTask extends AsyncTask<ContentValues,Void,Void> {
+    static class AddCurrencyTask extends AsyncTask<WeakReference<ContentValues>,Void,Void> {
 
+        private WeakReference<DBHelper> dbHelperWeakRef;
 
+        public AddCurrencyTask(WeakReference<DBHelper> dbHelperWeakRef) {
+            this.dbHelperWeakRef = dbHelperWeakRef;
+        }
         @Override
-        protected Void doInBackground(ContentValues... contentValues) {
-             ContentValues cv = contentValues[0];
+        protected Void doInBackground(WeakReference<ContentValues>... contentValues) {
+             ContentValues cv = contentValues[0].get();
+             DBHelper dbHelper = dbHelperWeakRef.get();
 
-            long i = dbHelper.getWritableDatabase().insert(DatabaseContract.TABLE_NAME, null, cv);
+            if (cv != null & dbHelper != null) {
+                dbHelper.getWritableDatabase().insert(DatabaseContract.TABLE_NAME, null, cv);
+            }
 
             return null;
         }
@@ -61,19 +70,24 @@ public class DatabaseActions {
     }
 
 
-    class LoadCurrenciesTask extends AsyncTask<Void,Void,List<AttributeCurrency>> {
+    static class LoadCurrenciesTask extends AsyncTask<Void,Void,List<AttributeCurrency>> {
         private final LoadUserCallback callback;
+        private WeakReference<DBHelper> dbHelperWeakRef;
 
-        LoadCurrenciesTask(LoadUserCallback callback) {
+        LoadCurrenciesTask(LoadUserCallback callback, WeakReference<DBHelper> dbHelperWeakRef) {
             this.callback = callback;
+            this.dbHelperWeakRef = dbHelperWeakRef;
         }
 
         @Override
         protected List<AttributeCurrency> doInBackground(Void... params) {
             List<AttributeCurrency> listAC = new ArrayList<>();
-               Cursor c = dbHelper.getWritableDatabase().query(DatabaseContract.TABLE_NAME, null, null, null, null, null, null);
-            if (c.moveToFirst()) {
-                do {
+
+            DBHelper dbHelper = dbHelperWeakRef.get();
+            if (dbHelper != null) {
+                Cursor c = dbHelper.getWritableDatabase().query(DatabaseContract.TABLE_NAME, null, null, null, null, null, null);
+                if (c.moveToFirst()) {
+                    do {
 
                         AttributeCurrency attCur = new AttributeCurrency();
                         attCur.setCharCode(c.getString(c.getColumnIndex(DatabaseContract.KEY_CHAR_CODE)));
@@ -82,9 +96,10 @@ public class DatabaseActions {
                         attCur.setNominal(c.getInt(c.getColumnIndex(DatabaseContract.KEY_NOMINAL)));
                         listAC.add(attCur);
 
-                } while (c.moveToNext());
+                    } while (c.moveToNext());
+                }
+                c.close();
             }
-            c.close();
 
             return listAC;
         }
@@ -98,16 +113,23 @@ public class DatabaseActions {
     }
 
 
-    class UpdateCurrencyTask extends AsyncTask<ContentValues,Void,Void> {
-        String charCode;
+    static class UpdateCurrencyTask extends AsyncTask<WeakReference<ContentValues>,Void,Void> {
+        private WeakReference<String> charCodeWeakRef;
+        private WeakReference<DBHelper> dbHelperWeakRef;
 
-        public UpdateCurrencyTask(String charCode) {
-            this.charCode = charCode;
+        public UpdateCurrencyTask(WeakReference<String> charCodeWeakRef, WeakReference<DBHelper> dbHelperWeakRef) {
+            this.charCodeWeakRef = charCodeWeakRef;
+            this.dbHelperWeakRef = dbHelperWeakRef;
         }
         @Override
-        protected Void doInBackground(ContentValues... contentValues) {
-            ContentValues cv = contentValues[0];
-           int j = dbHelper.getWritableDatabase().update(DatabaseContract.TABLE_NAME,cv,"CHAR_CODE = ?", new String[] {charCode});
+        protected Void doInBackground(WeakReference<ContentValues>... contentValues) {
+            ContentValues cv = contentValues[0].get();
+            DBHelper dbHelper = dbHelperWeakRef.get();
+            String charCode = charCodeWeakRef.get();
+            int j = 0;
+            if (cv != null & charCode != null & dbHelper != null) {
+                j = dbHelper.getWritableDatabase().update(DatabaseContract.TABLE_NAME,cv,"CHAR_CODE = ?", new String[] {charCode});
+            }
             Log.d(ANOTNER_LOG, "updated records = " + j +"\n");
 
             return null;
