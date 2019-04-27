@@ -1,91 +1,64 @@
 package com.test.danz.interactor;
 
-import android.content.ContentValues;
 import android.util.Log;
-import android.widget.Toast;
-import com.test.danz.database.DatabaseContract;
+
 import com.test.danz.model.AttributeCurrency;
-import com.test.danz.presentation.Presenter;
-import com.test.danz.repository.DatabaseActions;
 import com.test.danz.repository.IRepository;
 import com.test.danz.repository.Repository;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
 
 public class Interactor {
+
     private IRepository repository;
+    private List<AttributeCurrency> intermediateListAttCur = new ArrayList<>();
+    private final static String LOG_TAGG = "list";
 
-    private Presenter presenter;
-    private final static String LOG_TAG = "converterLogs";
-
-    public Interactor(Presenter presenter) {
-        this.presenter = presenter;
-        repository = new Repository(presenter.getView());
+    public interface CallbackToPresenter{
+        void sendDataToPresenter(List<AttributeCurrency> listAttCur);
     }
 
+    @Inject
+    public Interactor(IRepository repository) {
+        this.repository = repository;
+    }
 
-    public void setDataForRecycler() {
-        Log.d(LOG_TAG, "INTERACTOR Attack: " + "\n");
+    private void setDataToIntermediateList() {
         repository.getIniRetrofit(new Repository.AfterRetroCallback() {
             @Override
-            public void afterRetroCallback(List<AttributeCurrency> listCur, boolean checkInternet) {
-                setDataToDB(listCur);
-                     if (checkInternet) {
-                presenter.setResponseList(listCur);
-                } else {
-                    repository.getDatabaseActions().loadForRecycler(new DatabaseActions.LoadUserCallback() {
-                        @Override
-                        public void onLoad(List<AttributeCurrency> attCurList) {
-                            presenter.setResponseList(attCurList);
-                        }
-                    });
-                         Toast.makeText(presenter.getView() , "Произошла ошибка при загрузке данных с сервера. Проверьте интернет соединение. Возможно загружены старые данные" , Toast.LENGTH_LONG).show();
-                }
-                repository.getDBHelper().close();
+            public void sendDataToInteractor(List<AttributeCurrency> listCur) {
+                Log.d(LOG_TAGG, "interactorList1 size = " + listCur.size());
+                intermediateListAttCur.clear();
+                intermediateListAttCur.addAll(listCur);
             }
         });
-
-
-
     }
 
+    public void sendDataToPresenter(final CallbackToPresenter callback) {
 
-    public void setDataToDB(List<AttributeCurrency> listCur) {
-        for (AttributeCurrency attCur : listCur){
+        setDataToIntermediateList();
+        Log.d(LOG_TAGG, "interactorList2 size = " + intermediateListAttCur.size() + "\n");
+        callback.sendDataToPresenter(intermediateListAttCur);
+    }
 
-            if (repository.getDatabaseActions().getCursor().getCount()!= 0) {
-                cvUpdate(attCur,attCur.getCharCode());
-            }
-            else
-                cvAdd(attCur);
-
+    public List<AttributeCurrency> editRecyclerView (Double saveEdit) {
+        List<AttributeCurrency> localList = new ArrayList<>();
+        for(AttributeCurrency attCur: intermediateListAttCur) {
+            AttributeCurrency attributeCurrency = new AttributeCurrency();
+            attributeCurrency.setName(attCur.getName());
+            attributeCurrency.setValue(attCur.getValue());
+            attributeCurrency.setCharCode(attCur.getCharCode());
+            attributeCurrency.setNominal(attCur.getNominal());
+            localList.add(attributeCurrency);
         }
+
+        for(AttributeCurrency attCur: localList) {
+            double value =  saveEdit * attCur.getNominal() / attCur.getValue();
+            attCur.setValue(Double.valueOf(String.valueOf(new BigDecimal(value).setScale(3, BigDecimal.ROUND_HALF_UP))));
+        }
+        return localList;
     }
-
-    public void cvAdd(AttributeCurrency attCur ) {
-        ContentValues cv = new ContentValues();
-        cv.put(DatabaseContract.KEY_ID,attCur.getId());
-        cv.put(DatabaseContract.KEY_NUM_CODE,attCur.getNumCode());
-        cv.put(DatabaseContract.KEY_CHAR_CODE,attCur.getCharCode());
-        cv.put(DatabaseContract.KEY_NOMINAL,attCur.getNominal());
-        cv.put(DatabaseContract.KEY_NAME,attCur.getName());
-        cv.put(DatabaseContract.KEY_VALUE,attCur.getValue());
-
-        repository.getDatabaseActions().addCurrency(cv);
-
-    }
-
-    public void cvUpdate(AttributeCurrency attCur, String charCode) {
-
-        ContentValues cv = new ContentValues();
-        cv.put(DatabaseContract.KEY_ID,attCur.getId());
-        cv.put(DatabaseContract.KEY_NUM_CODE,attCur.getNumCode());
-        cv.put(DatabaseContract.KEY_CHAR_CODE,attCur.getCharCode());
-        cv.put(DatabaseContract.KEY_NOMINAL,attCur.getNominal());
-        cv.put(DatabaseContract.KEY_NAME,attCur.getName());
-        cv.put(DatabaseContract.KEY_VALUE,attCur.getValue());
-
-        repository.getDatabaseActions().updateCurrency(cv, charCode);
-
-    }
-
 }

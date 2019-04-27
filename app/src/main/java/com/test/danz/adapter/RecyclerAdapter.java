@@ -2,25 +2,21 @@ package com.test.danz.adapter;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import com.test.danz.presentation.R;
 import com.test.danz.model.AttributeCurrency;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.RecHolder> {
     private List<AttributeCurrency> attCurList = new ArrayList<>();
 
-
-    public void setDataRV(List<AttributeCurrency> listFromDB) {
+    public void setDataRV(List<AttributeCurrency> listWithData) {
         attCurList.clear();
-        attCurList.addAll(listFromDB);
+        attCurList.addAll(listWithData);
         notifyDataSetChanged();
     }
     @NonNull

@@ -1,48 +1,28 @@
 package com.test.danz.repository.networking;
 
 import android.util.Log;
-import android.widget.Toast;
-
 import com.test.danz.model.AttributeCurrency;
 import com.test.danz.model.CurrencyModel;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
+import javax.inject.Inject;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.Body;
 
 public class IniRetrofit {
-    private final static String LOG_TAG = "converterLogs";
+    private Retrofit.Builder builder;
 
-    public void executeRetrofit(ResponseCallback callback) {
-        Retro retro = new Retro(callback);
-        retro.iNetService();
+    @Inject
+    public IniRetrofit(Retrofit.Builder builder) {
+        this.builder = builder;
     }
-    public class Retro {
-        private ResponseCallback callback;
-        public Retro(ResponseCallback callback) {
-            this.callback = callback;
-        }
+    private final static String LOG_TAGG = "list";
+    private final static String LOG_TAG = "converter";
 
-        public void iNetService () {
-
-            HttpLoggingInterceptor logger = new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY);
-            OkHttpClient client = new OkHttpClient.Builder().addInterceptor(logger).build();
-            Retrofit.Builder builder = new Retrofit
-                    .Builder()
-                    .client(client)
-                    .baseUrl("https://www.cbr-xml-daily.ru/")
-                    .addConverterFactory(GsonConverterFactory.create());
+        public void iNetService(final ResponseCallback callback) {
             Retrofit retrofitBuild = builder.build();
-
-
             Log.d(LOG_TAG, "get feed complete");
             Call<CurrencyModel> call = retrofitBuild.create(INetCurrency.class).getCurrencyModel();
             call.enqueue(new Callback<CurrencyModel>()
@@ -51,8 +31,9 @@ public class IniRetrofit {
                 public void onResponse(Call <CurrencyModel> call, Response<CurrencyModel> response){
                     if (response.isSuccessful()) {
                         Log.d(LOG_TAG, "response is successful ");
-                        callback.getResponseCallback(getDataFromServer(response.body()), true);
 
+                        Log.d(LOG_TAGG, "iniRetroList size = " + parseDataFromServer(response.body()).size());
+                        callback.getResponseCallback(parseDataFromServer(response.body()), true);
                     }
                     else {
                         Log.d(LOG_TAG, "Error of loading data from server");
@@ -67,7 +48,7 @@ public class IniRetrofit {
                 }
             });
         }
-    }
+
 
     public interface ResponseCallback {
         void getResponseCallback(List<AttributeCurrency> attList, boolean checkInternet);
@@ -76,7 +57,7 @@ public class IniRetrofit {
 
 
 
-    public List<AttributeCurrency> getDataFromServer(CurrencyModel curModel) {
+    public List<AttributeCurrency> parseDataFromServer(CurrencyModel curModel) {
         Log.d(LOG_TAG, "get data from server");
         List<AttributeCurrency> attCurList = new ArrayList<>();
         AttributeCurrency attCur = new AttributeCurrency();

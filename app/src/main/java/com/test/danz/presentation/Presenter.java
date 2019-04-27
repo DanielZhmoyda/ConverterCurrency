@@ -1,70 +1,63 @@
 package com.test.danz.presentation;
 
+import android.util.Log;
+
 import com.test.danz.interactor.Interactor;
 import com.test.danz.model.AttributeCurrency;
-
-import java.math.BigDecimal;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Presenter {
+import javax.inject.Inject;
 
-    private MainActivity view;
+public class Presenter implements IPresenter{
+
+    private WeakReference<UserView> viewWeakRef = null;
     private Interactor interactor;
     private List<AttributeCurrency> listAttCur = new ArrayList<>();
+    private static final String LOG_TAG = "list";
 
-    public Presenter(MainActivity mainActivity) {
-        view = mainActivity;
-        interactor = new Interactor(this);
-    }
-
-    public void setFinalResponse(List<AttributeCurrency> recyclerList, List<AttributeCurrency> requestList) {
-        recyclerList.addAll(requestList);
-    }
-    public MainActivity getView() {
-        return view;
-    }
-    public void setResponseList(List<AttributeCurrency> listCur) {
-        setFinalResponse(listAttCur, listCur);
-        showRecycler();
+    @Inject
+    public Presenter(Interactor interactor) {
+        this.interactor = interactor;
     }
 
-    public void attachView(MainActivity mainActivity) {
-        view = mainActivity;
+    @Override
+    public void attachView(UserView view) {
+        viewWeakRef = new WeakReference<>(view);
+        initializationRecyclerView();
     }
 
+    @Override
     public void detachView() {
-        view = null;
+        viewWeakRef = null;
     }
 
-
-    public void initializationRecycler() {
-        interactor.setDataForRecycler();
+    @Override
+    public void initializationRecyclerView() {
+        interactor.sendDataToPresenter(new Interactor.CallbackToPresenter() {
+            @Override
+            public void sendDataToPresenter(List<AttributeCurrency> listCur) {
+                listAttCur.clear();
+                listAttCur.addAll(listCur);
+                showRecycleView();
+            }
+        });
     }
 
-    public void showRecycler() {
-        view.setData(listAttCur);
-    }
-    public void initializationRecyclerAfterEdit(double saveEdit) {
-        view.setData(editRecyclerView(saveEdit));
+    @Override
+    public void showRecycleView() {
+        UserView userView = viewWeakRef.get();
+        if (userView != null)
+        userView.setDataToRecyclerView(listAttCur);
+        Log.d(LOG_TAG, "list size = " + listAttCur.size());
     }
 
-
-    public List<AttributeCurrency> editRecyclerView (Double saveEdit) {
-        List<AttributeCurrency> localList = new ArrayList<>();
-        for(AttributeCurrency attCur: listAttCur) {
-            AttributeCurrency attributeCurrency = new AttributeCurrency();
-            attributeCurrency.setName(attCur.getName());
-            attributeCurrency.setValue(attCur.getValue());
-            attributeCurrency.setCharCode(attCur.getCharCode());
-            attributeCurrency.setNominal(attCur.getNominal());
-            localList.add(attributeCurrency);
-        }
-
-        for(AttributeCurrency attCur: localList) {
-            double value =  saveEdit * attCur.getNominal() / attCur.getValue();
-            attCur.setValue(Double.valueOf(String.valueOf(new BigDecimal(value).setScale(3, BigDecimal.ROUND_HALF_UP))));
-        }
-        return localList;
+    @Override
+    public void changeRecyclerViewAfterEdit(double saveEdit) {
+        UserView userView = viewWeakRef.get();
+        if (userView != null)
+        userView.setDataToRecyclerView(interactor.editRecyclerView(saveEdit));
     }
+
 }
